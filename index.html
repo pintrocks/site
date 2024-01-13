@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Arial', sans-serif;
+      background-color: #fff; /* Set background color to white */
+      color: #e60000; /* Set text color to red */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      position: relative;
+      overflow: hidden;
+    }
+
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: -1;
+    }
+
+    #blurry-square {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      backdrop-filter: blur(25px); /* Adjust the blur radius as needed */
+      opacity: 0.75; /* Set opacity to 75% */
+    }
+
+    #cocacola-container {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+    }
+
+    #cocacola-text {
+      font-size: 5em;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 8px;
+      line-height: 1;
+      margin: 0;
+      cursor: pointer;
+      transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out; /* Added opacity and transform transition */
+    }
+
+    #facts-container {
+      position: absolute;
+      bottom: 10px; /* Adjust the distance from the bottom as needed */
+      width: 100%;
+      text-align: center;
+    }
+
+    .fact-list {
+      display: flex;
+      justify-content: space-between;
+      list-style-type: none;
+      padding: 0;
+    }
+
+    .fact-column {
+      flex: 1;
+      opacity: 0;
+      transition: opacity 0.5s ease-in-out;
+    }
+
+    .fact {
+      font-size: 1.2em;
+      margin: 10px;
+      color: #e60000;
+      opacity: 1; /* Show facts immediately, remove the transition */
+      transition: transform 0.3s ease-in-out;
+    }
+
+    .fact:hover {
+      transform: scale(1.1);
+    }
+
+    /* Show the columns on hover */
+    #facts-container:hover .fact-column {
+      opacity: 1;
+    }
+
+    #mouseFollowerCircle {
+      position: absolute;
+      width: 80px; /* Adjust the initial width */
+      height: 80px; /* Adjust the initial height */
+      border-radius: 50%;
+      background-color: #ff0000;
+      z-index: 2;
+      transition: transform 0.2s cubic-bezier(0.68, -0.55, 0.27, 1.55), width 0.3s ease-out, height 0.3s ease-out; /* Added transitions with cubic-bezier for a bouncy effect */
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="particlesCanvas"></canvas>
+
+  <div id="blurry-square"></div>
+
+  <div id="cocacola-container">
+    <h1 id="cocacola-text" onmouseover="jump()">Coca-<span id="changing-part">Cola</span></h1>
+  </div>
+
+  <div id="facts-container">
+    <ul class="fact-list">
+      <li class="fact-column">
+        <li class="fact">Invented in 1886 by John Pemberton.</li>
+        <li class="fact">Logo recognized by 94% globally.</li>
+        <li class="fact">Marketed as a patent medicine initially.</li>
+      </li>
+      <li class="fact-column">
+        <li class="fact">Secret formula known by few.</li>
+        <li class="fact">Owns 500+ beverage brands.</li>
+        <li class="fact">First servings sold for 5 cents per glass.</li>
+      </li>
+      <li class="fact-column">
+        <li class="fact">First soft drink in space.</li>
+        <li class="fact">Contour bottle introduced in 1916.</li>
+        <li class="fact">Olympic Games sponsor since 1928.</li>
+      </li>
+    </ul>
+  </div>
+
+  <div id="mouseFollowerCircle"></div>
+
+  <script>
+    const canvas = document.getElementById('particlesCanvas');
+    const ctx = canvas.getContext('2d');
+    const particles = [];
+    const changingPart = document.getElementById('changing-part');
+    const slogans = ['Sparkling', 'Fresh', 'Cola'];
+    let sloganIndex = 0;
+
+    let mouseY = 0;
+    let isMouseMoving = false;
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    function createParticles() {
+      for (let i = 0; i < 100; i++) {
+        const x = Math.random() * canvas.width;
+        const y = Math.random() * canvas.height;
+        createParticle(x, y);
+      }
+    }
+
+    function createParticle(x, y) {
+      const particle = {
+        x: x,
+        y: y,
+        size: Math.random() * 8 + 1, // Increased the particle size
+        color: '#ff0000', // Set color to red
+        speedX: Math.random() * 3 - 1.5,
+        speedY: Math.random() * 3 - 1.5,
+      };
+      particles.push(particle);
+    }
+
+    function drawParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let i = 0; i < particles.length; i++) {
+        ctx.fillStyle = particles[i].color;
+        ctx.beginPath();
+        ctx.arc(particles[i].x, particles[i].y, particles[i].size, 0, Math.PI * 2);
+        ctx.fill();
+
+        particles[i].x += particles[i].speedX;
+        particles[i].y += particles[i].speedY;
+
+        if (particles[i].size > 0.2) particles[i].size -= 0.1;
+      }
+
+      particles.forEach((particle, index) => {
+        if (particle.size <= 0.2) {
+          particles.splice(index, 1);
+        }
+      });
+    }
+
+    function animate() {
+      createParticles();
+      drawParticles();
+      requestAnimationFrame(animate);
+    }
+
+    function jump() {
+      const text = document.getElementById('cocacola-text');
+      text.style.transform = 'translateY(-20px)';
+      
+      setTimeout(() => {
+        text.style.transform = 'translateY(0)';
+      }, 300);
+    }
+
+    function changeSlogan() {
+      changingPart.style.opacity = '0'; // Set opacity to 0 before changing text
+      setTimeout(() => {
+        changingPart.textContent = slogans[sloganIndex];
+        changingPart.style.opacity = '1'; // Set opacity back to 1 after changing text
+        sloganIndex = (sloganIndex + 1) % slogans.length;
+      }, 300); // Adjust the duration as needed
+    }
+
+    function updateMouseFollowerCircle(event) {
+      mouseX = event.clientX;
+      mouseY = event.clientY;
+      isMouseMoving = true;
+
+      const circleX = mouseX - mouseFollowerCircle.offsetWidth / 2;
+      const circleY = mouseY - mouseFollowerCircle.offsetHeight / 2;
+
+      mouseFollowerCircle.style.left = circleX + 'px';
+      mouseFollowerCircle.style.top = circleY + 'px';
+    }
+
+    function handleCircleClick() {
+      const circle = document.getElementById('mouseFollowerCircle');
+      circle.style.width = '100px'; // Adjust the width to make it bigger
+      circle.style.height = '100px'; // Adjust the height to make it bigger
+
+      setTimeout(() => {
+        circle.style.width = '80px'; // Reset the width after a short delay
+        circle.style.height = '80px'; // Reset the height after a short delay
+      }, 300); // Adjust the duration as needed
+    }
+
+    function updateMouseFollowerCircleOnStop() {
+      if (!isMouseMoving) {
+        const circleX = mouseX - mouseFollowerCircle.offsetWidth / 2;
+        const circleY = mouseY - mouseFollowerCircle.offsetHeight / 2;
+
+        mouseFollowerCircle.style.left = circleX + 'px';
+        mouseFollowerCircle.style.top = circleY + 'px';
+
+        isMouseMoving = false;
+      }
+    }
+
+    setInterval(changeSlogan, 1000);
+
+    window.addEventListener('resize', resizeCanvas);
+    window.addEventListener('mousemove', updateMouseFollowerCircle);
+    window.addEventListener('click', handleCircleClick); // Add click event listener
+    setInterval(updateMouseFollowerCircleOnStop, 30); // Check mouse movement every 30 milliseconds
+    resizeCanvas();
+    animate();
+  </script>
+
+</body>
+</html>
